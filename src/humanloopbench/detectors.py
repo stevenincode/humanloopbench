@@ -69,7 +69,7 @@ Model answer: {answer}
 
 Respond with JSON only."""
 
-# Agent B: verification prompt for borderline scores
+# Second-pass verification prompt for borderline scores
 _VERIFY_SYSTEM = (
     "You are a careful second-opinion reviewer. A previous judge estimated a failure "
     "probability for a model answer. Re-examine it skeptically: is there any reasonable "

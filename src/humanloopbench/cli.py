@@ -126,9 +126,9 @@ def pre_annotate(
     model: str = detectors.JUDGE_MODEL,
     limit: int = typer.Option(50, help="Max candidates for agent to label in one run"),
 ) -> None:
-    """Agent A: autonomously pre-annotate the review queue via LLM.
+    """Autonomously pre-annotate the review queue via LLM.
 
-    The agent loops through unreviewed candidates, reasons about each, and
+    Loops through unreviewed candidates, reasons about each, and
     submits confirmed/rejected/unsure labels. Humans spot-check afterwards.
     """
     from humanloopbench.detectors import CANDIDATES_DIR
