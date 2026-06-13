@@ -168,14 +168,12 @@ def pre_annotate(
                 pass
         return {"label": "unsure", "notes": "could not parse agent response", "stop": False}
 
-    import json as _json
-
     all_candidates_raw: list[dict] = []
     if CANDIDATES_DIR.exists():
         for path in sorted(CANDIDATES_DIR.glob("*.jsonl")):
             for line in path.read_text(encoding="utf-8").splitlines():  # noqa: E501
                 if line.strip():
-                    all_candidates_raw.append(_json.loads(line))
+                    all_candidates_raw.append(json.loads(line))
 
     all_candidates_raw.sort(key=lambda c: c.get("score", 0), reverse=True)
 

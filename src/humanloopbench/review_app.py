@@ -45,8 +45,7 @@ def _load_candidates() -> list[FailureCandidate]:
 @st.cache_data(ttl=5)
 def _load_outputs() -> dict[str, str]:
     """Return {output_id: answer_text} from all run files."""
-    outputs: dict[str, str] = []
-    outputs = {}
+    outputs: dict[str, str] = {}
     if not RUNS_DIR.exists():
         return outputs
     for path in RUNS_DIR.glob("*.jsonl"):
