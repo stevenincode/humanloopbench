@@ -49,7 +49,7 @@ uv run --env-file .env humanloopbench run --model gemma3:12b --source demo
 
 # 3. Quick trial — 30 samples from SQuAD v2 [HF download + Ollama API]
 uv run --env-file .env humanloopbench run    --model gemma3:12b --source squad_v2 --limit 30
-uv run --env-file .env humanloopbench detect --model gemma3:12b --source squad_v2 --limit 30 --workers 5
+uv run --env-file .env humanloopbench detect --model gemma3:12b --source squad_v2 --limit 30 --workers 3
 
 # 4. Full run (~150 samples each model) [HF download + Ollama API]
 uv run --env-file .env humanloopbench run --model gemma3:12b          --source squad_v2
