@@ -128,7 +128,7 @@ SQuAD v2.0 (or demo fixture)
 
 Code: **MIT**
 
-Benchmark dataset: **CC BY-SA 4.0** — derived from SQuAD v2.0 (`rajpurkar/squad_v2`). Cite:
+Benchmark dataset: **CC BY-SA 4.0** — derived from [SQuAD v2.0](https://rajpurkar.github.io/SQuAD-explorer/) ([HF dataset](https://huggingface.co/datasets/rajpurkar/squad_v2)). Cite:
 
 ```
 Rajpurkar et al. (2018). Know What You Don't Know: Unanswerable Questions for SQuAD. ACL 2018.
