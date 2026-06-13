@@ -41,35 +41,35 @@ cp .env.example .env
 ```bash
 # Prefix every command with: uv run --env-file .env
 
-# 1. Sanity check                                        [Ollama API]
+# 1. Sanity check [Ollama API]
 uv run --env-file .env humanloopbench smoke
 
-# 2. Demo fixture (8 items, offline JSONL)               [Ollama API]
+# 2. Demo fixture — 8 items, offline JSONL [Ollama API]
 uv run --env-file .env humanloopbench run --model gemma3:12b --source demo
 
-# 3. Quick trial — 30 samples from SQuAD v2             [HF download + Ollama API]
+# 3. Quick trial — 30 samples from SQuAD v2 [HF download + Ollama API]
 uv run --env-file .env humanloopbench run    --model gemma3:12b --source squad_v2 --limit 30
 uv run --env-file .env humanloopbench detect --model gemma3:12b --source squad_v2 --limit 30 --workers 5
 
-# 4. Full run (~150 samples each model)                  [HF download + Ollama API]
+# 4. Full run (~150 samples each model) [HF download + Ollama API]
 uv run --env-file .env humanloopbench run --model gemma3:12b          --source squad_v2
 uv run --env-file .env humanloopbench run --model nemotron-3-nano:30b  --source squad_v2
 
-# 5. Detect failures (LLM-as-Judge)                     [Ollama API — uses local snapshot]
+# 5. Detect failures [Ollama API — uses local snapshot]
 uv run --env-file .env humanloopbench detect --model gemma3:12b         --source squad_v2 --workers 3
 uv run --env-file .env humanloopbench detect --model nemotron-3-nano:30b --source squad_v2 --workers 3
 
-# 6a. Agent pre-annotates, you spot-check               [Ollama API]
+# 6a. Agent pre-annotates, you spot-check [Ollama API]
 uv run --env-file .env humanloopbench pre-annotate --model gpt-oss:120b --limit 200
-uv run --env-file .env humanloopbench review         #                   [local only]
+uv run --env-file .env humanloopbench review  # [local only]
 
-# 6b. OR review everything manually                     [local only]
+# 6b. OR review everything manually [local only]
 uv run --env-file .env humanloopbench review
 
-# 7. Export benchmark + metrics                         [local only]
+# 7. Export benchmark + metrics [local only]
 uv run --env-file .env humanloopbench bench
 
-# 8. Validate vs RAGTruth                               [HF download + Ollama API]
+# 8. Validate vs RAGTruth [HF download + Ollama API]
 uv run --env-file .env humanloopbench validate --workers 3
 ```
 
