@@ -1,8 +1,13 @@
 # HumanLoopBench
 
-**Human-in-the-loop LLM failure detection for grounded QA.**
+![Python](https://img.shields.io/badge/python-3.11%2B-blue?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Dataset](https://img.shields.io/badge/dataset-CC%20BY--SA%204.0-lightgrey)
+![Models](https://img.shields.io/badge/inference-Ollama%20Cloud-orange)
 
-Run an open model on a grounded QA dataset, auto-flag likely failures with LLM-as-Judge explanations, confirm them fast in a review UI or via an MCP agent, and export a citable benchmark + a detector validation report.
+**Human-in-the-loop LLM Failure Detection & Benchmark Toolkit**
+
+Auto-flag LLM failures (hallucination, refusal, factual error) with LLM-as-Judge explanations. Confirm them in a review UI or via MCP agent — then export a citable benchmark validated against expert labels.
 
 ---
 
@@ -14,8 +19,8 @@ HumanLoopBench closes that loop with:
 
 - **Two detectors, three failure categories** — `hallucination` (grounding failure), `refusal`, `factual_error` — LLM-as-Judge with two-step verification for borderline cases
 - **A Streamlit review UI** and an **MCP server** (SSE, port 8765) so humans can annotate from a browser or directly inside Claude Code / VS Code / Cursor
-- **An agentic pre-annotator** that labels the queue autonomously and hands off to a human for spot-checking
-- **A benchmark export** (HF Datasets, CC BY-SA 4.0) and a **detector validation report** (precision/recall/F1 vs. RAGTruth expert labels)
+- **An agentic pre-annotator** that drafts labels autonomously, keeping humans focused on ambiguous edge cases
+- **A benchmark export** (HF Datasets, CC BY-SA 4.0) and a **detector validation report** — precision/recall/F1 validated against expert-labeled RAGTruth hallucination annotations
 
 ---
 
