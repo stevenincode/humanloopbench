@@ -96,6 +96,18 @@ SQuAD v2.0 (or demo fixture)
 
 ---
 
+## Review UI
+
+**Annotating a candidate** — the detector flags a likely hallucination (conf 1.00), shows the full context, and waits for a human confirm / unsure / reject. The confidence guide in the sidebar explains the score thresholds and score boosters applied.
+
+![Annotation view](Screenshot_1.png)
+
+**After a full session** — browse confirmed failures filtered by minimum confidence (0.75 slider). Expanded candidate shows a `refusal` failure: the model said `NOT IN CONTEXT` on an answerable question, caught and explained by the judge.
+
+![Browse view](Screenshot_2.png)
+
+---
+
 ## Architecture
 
 | Component | File | Role |
