@@ -9,8 +9,8 @@ Usage:
   Start the server:  python -m humanloopbench.mcp_server
   Default SSE URL:   http://127.0.0.1:8765/sse
 
-Register in .claude/settings.json:
-  {"mcpServers": {"humanloopbench": {"url": "http://127.0.0.1:8765/sse"}}}
+Registration is handled by the committed .mcp.json — no per-machine config needed.
+  See MCP_SETUP.md for server startup instructions.
 """
 
 from __future__ import annotations
