@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+data/runs/
+data/candidates/
+data/samples/
+data/benchmark/
+data/validation_report.json
+data/*.db
+*.jsonl
+!data/samples_demo.jsonl
+.env
+.DS_Store
+.claude/
