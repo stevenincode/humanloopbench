@@ -9,7 +9,7 @@
 
 Auto-flag LLM failures (hallucination, refusal, factual error) with LLM-as-Judge explanations. Confirm them in a review UI or via MCP agent — then export a citable benchmark validated against expert labels.
 
-Works with **Ollama** models (Ollama Cloud or local; default) and **Amazon Bedrock** models (`--provider bedrock`).
+Compatible with **Ollama** and **Amazon Bedrock** models.
 
 ---
 
