@@ -54,3 +54,17 @@ def test_load_samples_unknown_source():
         assert "unknown source" in str(e)
     else:
         raise AssertionError("expected ValueError")
+
+
+def _s(i: str, q: str = "q") -> Sample:
+    return Sample(id=i, question=q, context="c", reference="r", answerable=True)
+
+
+def test_samples_snapshot_merges_instead_of_overwriting(tmp_path, monkeypatch):
+    monkeypatch.setattr(task, "SAMPLES_DIR", tmp_path)
+    task.save_samples_snapshot([_s("a"), _s("b"), _s("c")], "squad_v2")
+    # A smaller later run (e.g. --limit 1) must not drop a/c; new ids are appended.
+    task.save_samples_snapshot([_s("b", q="updated"), _s("d")], "squad_v2")
+    loaded = task.load_samples_snapshot("squad_v2")
+    assert [s.id for s in loaded] == ["a", "b", "c", "d"]
+    assert loaded[1].question == "updated"

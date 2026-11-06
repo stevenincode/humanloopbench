@@ -110,11 +110,24 @@ def load_outputs(model: str, source: str = "squad_v2") -> list[ModelOutput]:
 
 
 def save_samples_snapshot(samples: list[Sample], source: str) -> Path:
-    """Persist sample metadata so the review UI can display question + context."""
+    """Persist sample metadata so the review UI can display question + context.
+
+    Merges into any existing snapshot (keyed by sample id) instead of replacing it,
+    so a small `run --limit N` never drops samples that earlier runs depend on.
+    Existing order is kept; new ids are appended; re-saved ids are updated in place.
+    """
     SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
     path = SAMPLES_DIR / f"{source}.jsonl"
+    merged: dict[str, Sample] = {}
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                existing = Sample(**json.loads(line))
+                merged[existing.id] = existing
+    for s in samples:
+        merged[s.id] = s
     with path.open("w", encoding="utf-8") as f:
-        for s in samples:
+        for s in merged.values():
             f.write(s.model_dump_json() + "\n")
     return path
 

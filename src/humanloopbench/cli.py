@@ -18,12 +18,23 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+_PROVIDER_HELP = "Model provider: ollama (default) or bedrock"
+
+
+def _check_provider(provider: str) -> None:
+    if provider not in models.PROVIDERS:
+        raise typer.BadParameter(f"--provider must be one of {models.PROVIDERS}")
+
 
 @app.command()
-def smoke(model: str = "gpt-oss:120b") -> None:
+def smoke(
+    model: str = "gpt-oss:120b",
+    provider: str = typer.Option("ollama", help=_PROVIDER_HELP),
+) -> None:
     """Verify model access."""
-    typer.echo(f"calling {model} ...")
-    typer.echo(models.smoke_test(model))
+    _check_provider(provider)
+    typer.echo(f"calling {model} via {provider} ...")
+    typer.echo(models.smoke_test(model, provider=provider))
 
 
 @app.command()
@@ -31,16 +42,18 @@ def run(
     model: str = typer.Option(..., help="Model to query"),
     source: str = "demo",
     limit: int = 150,
+    provider: str = typer.Option("ollama", help=_PROVIDER_HELP),
 ) -> None:
     """Run a model over the grounded-QA task and save outputs.
 
     source: 'demo' (offline fixture) or 'squad_v2' (Hugging Face).
     """
+    _check_provider(provider)
     samples = task.load_samples(source=source, limit=limit)
-    typer.echo(f"loaded {len(samples)} samples from '{source}'; querying {model} ...")
+    typer.echo(f"loaded {len(samples)} samples from '{source}'; querying {model} ({provider}) ...")
 
     def gen(m: str, prompt: str) -> str:
-        return models.generate(m, prompt, system=task.SYSTEM)
+        return models.generate(m, prompt, system=task.SYSTEM, provider=provider)
 
     outputs = task.run_samples(samples, model, gen)
     path = task.save_outputs(outputs, model, source)
@@ -56,6 +69,7 @@ def detect(
     judge: str = detectors.JUDGE_MODEL,
     no_two_step: bool = typer.Option(False, "--no-two-step", help="Disable verification pass"),
     workers: int = typer.Option(3, help="Parallel judge call workers (keep ≤5 to avoid 429s)"),
+    provider: str = typer.Option("ollama", help="Provider for the judge model: ollama or bedrock"),
 ) -> None:
     """Run detectors over saved outputs; write FailureCandidates.
 
@@ -63,6 +77,7 @@ def detect(
     """
     import concurrent.futures
 
+    _check_provider(provider)
     outputs = task.load_outputs(model, source)
     typer.echo(f"loaded {len(outputs)} outputs for {model}")
 
@@ -76,7 +91,7 @@ def detect(
     two_step = not no_two_step
 
     def judge_fn(m: str, prompt: str, *, system: str | None = None) -> str:
-        return models.generate(m, prompt, system=system)
+        return models.generate(m, prompt, system=system, provider=provider)
 
     sample_map = {s.id: s for s in samples}
 
@@ -125,12 +140,14 @@ def review() -> None:
 def pre_annotate(
     model: str = detectors.JUDGE_MODEL,
     limit: int = typer.Option(50, help="Max candidates for agent to label in one run"),
+    provider: str = typer.Option("ollama", help=_PROVIDER_HELP),
 ) -> None:
     """Autonomously pre-annotate the review queue via LLM.
 
     Loops through unreviewed candidates, reasons about each, and
     submits confirmed/rejected/unsure labels. Humans spot-check afterwards.
     """
+    _check_provider(provider)
     from humanloopbench.detectors import CANDIDATES_DIR
     from humanloopbench.store import get_annotated_ids, save_annotation
     from humanloopbench.task import load_all_samples
@@ -208,7 +225,7 @@ def pre_annotate(
             payload["reference"] = sample.reference
 
         prompt = _agent_prompt(payload)
-        raw_resp = models.generate(model, prompt, system=_AGENT_SYSTEM)
+        raw_resp = models.generate(model, prompt, system=_AGENT_SYSTEM, provider=provider)
         decision = _parse_decision(raw_resp)
 
         label = decision.get("label", "unsure")
@@ -314,6 +331,7 @@ def validate(
     judge: str = detectors.JUDGE_MODEL,
     threshold: float = 0.5,
     workers: int = typer.Option(3, help="Parallel judge call workers"),
+    provider: str = typer.Option("ollama", help="Provider for the judge model: ollama or bedrock"),
 ) -> None:
     """Validate grounding detector against RAGTruth expert labels.
 
@@ -323,6 +341,7 @@ def validate(
     """
     from humanloopbench import validate as val_mod
 
+    _check_provider(provider)
     typer.echo(f"loading RAGTruth QA slice (limit={limit}) ...")
     items = val_mod.load_ragtruth(limit=limit)
     typer.echo(
@@ -332,7 +351,7 @@ def validate(
     )
 
     def judge_fn(m: str, prompt: str, *, system: str | None = None) -> str:
-        return models.generate(m, prompt, system=system)
+        return models.generate(m, prompt, system=system, provider=provider)
 
     typer.echo(
         f"running grounding detector (judge={judge}, threshold={threshold}, workers={workers}) ..."

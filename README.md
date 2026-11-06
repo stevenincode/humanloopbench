@@ -3,11 +3,13 @@
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Dataset](https://img.shields.io/badge/dataset-CC%20BY--SA%204.0-lightgrey)
-![Models](https://img.shields.io/badge/inference-Ollama%20Cloud-orange)
+![Models](https://img.shields.io/badge/models-Ollama%20%7C%20Amazon%20Bedrock-orange)
 
 **Human-in-the-loop LLM Failure Detection & Benchmark Toolkit**
 
 Auto-flag LLM failures (hallucination, refusal, factual error) with LLM-as-Judge explanations. Confirm them in a review UI or via MCP agent — then export a citable benchmark validated against expert labels.
+
+Works with **Ollama** models (Ollama Cloud or local; default) and **Amazon Bedrock** models (`--provider bedrock`).
 
 ---
 
@@ -21,6 +23,7 @@ HumanLoopBench closes that loop with:
 - **A Streamlit review UI** and an **MCP server** (SSE, port 8765) so humans can annotate from a browser or directly inside Claude Code / VS Code / Cursor
 - **An agentic pre-annotator** that drafts labels autonomously, keeping humans focused on ambiguous edge cases
 - **A benchmark export** (HF Datasets, CC BY-SA 4.0) and a **detector validation report** — precision/recall/F1 validated against expert-labeled RAGTruth hallucination annotations
+- **Two model providers** — Ollama (default) and Amazon Bedrock via the Converse API — selectable per command with `--provider`
 
 ---
 
@@ -38,6 +41,49 @@ uv sync --extra dev
 cp .env.example .env
 # edit .env: set OLLAMA_HOST=https://ollama.com and OLLAMA_API_KEY
 ```
+
+---
+
+## Optional: Amazon Bedrock provider
+
+Ollama stays the default. Add `--provider bedrock` to `smoke`, `run`, `detect`, `pre-annotate` or `validate` to call a Bedrock model through the Converse API. In `run` the flag applies to the model under test; in `detect` and `validate` to the **judge** model; in `pre-annotate` to the labelling agent's model.
+
+**1. Install boto3**
+
+```bash
+uv sync --extra bedrock   # --extra dev also includes boto3
+```
+
+**2. Model access.** No manual step for most models: serverless Bedrock models are enabled automatically the first time your account calls them. Exceptions: Anthropic models may ask first-time users for a short use-case form, and AWS Marketplace models must be invoked once by a user with Marketplace permissions. Some models are only callable through a cross-region inference profile ID (e.g. `us.amazon.nova-micro-v1:0`); use the ID shown in the Bedrock console.
+
+**3. Credentials (standard AWS chain; access keys never go in code or `.env`)**
+
+Install the [AWS CLI](https://aws.amazon.com/cli/) (Windows: `winget install Amazon.AWSCLI`), then:
+
+```bash
+aws configure --profile humanloopbench   # or: aws configure sso
+```
+
+Then set `AWS_PROFILE=humanloopbench` and `AWS_REGION=us-east-1` in your shell or `.env`. The IAM identity only needs `bedrock:InvokeModel` on the model(s) you use. For a cross-region ID such as `us.amazon.nova-micro-v1:0`, allow both the inference profile and the underlying foundation model in every region it routes to, e.g.:
+
+```json
+"Resource": [
+  "arn:aws:bedrock:*:*:inference-profile/us.amazon.nova-micro-v1:0",
+  "arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0"
+]
+```
+
+**4. Run (start small)**
+
+```bash
+uv run --env-file .env humanloopbench smoke --provider bedrock --model us.amazon.nova-micro-v1:0
+uv run --env-file .env humanloopbench run --provider bedrock --model us.amazon.nova-micro-v1:0 --source squad_v2 --limit 30
+```
+
+> [!NOTE]
+> Bedrock bills per token. Each call is capped at `BEDROCK_MAX_TOKENS` output tokens (default 512). Start with `--limit 30`, keep `--workers` low, prefer small models, and set an AWS Budgets alert before full runs. Throttling errors are retried with exponential backoff; daily-quota errors fail immediately.
+
+**Troubleshooting: `ThrottlingException: Too many tokens per day`.** New AWS accounts can start with Bedrock inference quotas set to 0. Check **Service Quotas → Amazon Bedrock** for your model; if the applied values are 0, request an increase there (where adjustable) or open an **AWS Support → Service limit increase** case (quotas marked "Not adjustable" can only be raised this way). Approval typically takes a day or more.
 
 ---
 
@@ -85,9 +131,9 @@ uv run --env-file .env humanloopbench validate --workers 3
 ```
 SQuAD v2.0 (or demo fixture)
          │
-  humanloopbench run          → data/runs/<model>.jsonl
+  humanloopbench run          → data/runs/<model>__<source>.jsonl
          │
-  humanloopbench detect       → data/candidates/<model>.jsonl
+  humanloopbench detect       → data/candidates/<model>__<source>.jsonl
          │
   ┌──────┴──────┐
   review (UI)   pre-annotate (Agent A)
@@ -118,7 +164,7 @@ SQuAD v2.0 (or demo fixture)
 | Component | File | Role |
 |---|---|---|
 | Data model | `schemas.py` | `Sample`, `ModelOutput`, `FailureCandidate`, `Annotation`, `ValidationResult` |
-| Model runner | `models.py` | `generate()` over Ollama Cloud |
+| Model runner | `models.py` | `generate()` over Ollama Cloud (default) or Amazon Bedrock (`--provider bedrock`) |
 | Task | `task.py` | SQuAD v2 loader, prompt builder, run loop |
 | Detectors | `detectors.py` | `detect_grounding` → `hallucination`; `detect_reasoning` → `refusal` / `factual_error`; two-step verification for borderline scores (0.3–0.7) |
 | Review UI | `review_app.py` | Streamlit HITL queue — score-sorted, confirm/reject/unsure |
